@@ -9,12 +9,7 @@ import {
 import { PrismaService } from '../../prisma/prisma.service';
 import { CloudinaryService } from './cloudinary.service';
 import { EmailService } from '../email/email.service';
-import {
-  UpdateUserDto,
-  UpdateUsernameDto,
-  GetUsersQueryDto,
-  ContactFormDto,
-} from './dto';
+import { UpdateUserDto, UpdateUsernameDto, GetUsersQueryDto, ContactFormDto } from './dto';
 
 @Injectable()
 export class UsersService {
@@ -174,10 +169,7 @@ export class UsersService {
     }
 
     // Upload new avatar
-    const uploadResult = await this.cloudinaryService.uploadImage(
-      file,
-      'soro-avatars',
-    );
+    const uploadResult = await this.cloudinaryService.uploadImage(file, 'soro-avatars');
 
     // Update user
     const updatedUser = await this.prisma.user.update({

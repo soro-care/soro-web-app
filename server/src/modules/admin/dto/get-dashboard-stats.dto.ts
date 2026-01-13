@@ -1,0 +1,13 @@
+// src/modules/admin/dto/get-dashboard-stats.dto.ts
+
+import { IsOptional, IsDateString } from 'class-validator';
+
+export class GetDashboardStatsDto {
+  @IsOptional()
+  @IsDateString()
+  startDate?: string;
+
+  @IsOptional()
+  @IsDateString()
+  endDate?: string;
+}

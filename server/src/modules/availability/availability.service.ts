@@ -94,16 +94,12 @@ export class AvailabilityService {
     });
 
     if (availabilities.length === 0) {
-      throw new NotFoundException(
-        'Availability not initialized. Please initialize first.',
-      );
+      throw new NotFoundException('Availability not initialized. Please initialize first.');
     }
 
     // Sort by day of week order
     const dayOrder = AvailabilityHelpers.getAllDays();
-    const sorted = availabilities.sort(
-      (a, b) => dayOrder.indexOf(a.day) - dayOrder.indexOf(b.day),
-    );
+    const sorted = availabilities.sort((a, b) => dayOrder.indexOf(a.day) - dayOrder.indexOf(b.day));
 
     return {
       message: 'Availability retrieved successfully',
@@ -115,11 +111,7 @@ export class AvailabilityService {
   // UPDATE AVAILABILITY FOR SPECIFIC DAY
   // ============================================
 
-  async updateAvailability(
-    professionalId: string,
-    dayId: string,
-    dto: UpdateAvailabilityDto,
-  ) {
+  async updateAvailability(professionalId: string, dayId: string, dto: UpdateAvailabilityDto) {
     // Find the availability record
     const availability = await this.prisma.availability.findUnique({
       where: { id: dayId },
@@ -131,9 +123,7 @@ export class AvailabilityService {
 
     // Verify ownership
     if (availability.professional !== professionalId) {
-      throw new ForbiddenException(
-        'Not authorized to update this availability',
-      );
+      throw new ForbiddenException('Not authorized to update this availability');
     }
 
     // Validate slots if provided
@@ -151,7 +141,7 @@ export class AvailabilityService {
     const updated = await this.prisma.availability.update({
       where: { id: dayId },
       data: {
-        slots: dto.slots || availability.slots,
+        slots: (dto.slots || availability.slots) as any,
         available: finalAvailable ?? availability.available,
         updatedAt: new Date(),
       },
@@ -167,10 +157,7 @@ export class AvailabilityService {
   // BULK UPDATE AVAILABILITY
   // ============================================
 
-  async bulkUpdateAvailability(
-    professionalId: string,
-    dto: BulkUpdateAvailabilityDto,
-  ) {
+  async bulkUpdateAvailability(professionalId: string, dto: BulkUpdateAvailabilityDto) {
     // Verify professional
     const user = await this.prisma.user.findUnique({
       where: { id: professionalId },
@@ -202,7 +189,7 @@ export class AvailabilityService {
           return this.prisma.availability.update({
             where: { id: existing.id },
             data: {
-              slots: avail.slots,
+              slots: avail.slots as any,
               available: avail.available,
               updatedAt: new Date(),
             },
@@ -213,7 +200,7 @@ export class AvailabilityService {
             data: {
               professional: professionalId,
               day: avail.day,
-              slots: avail.slots,
+              slots: avail.slots as any,
               available: avail.available,
             },
           });
@@ -251,8 +238,7 @@ export class AvailabilityService {
     // Check if slot exists
     const slots = availability.slots as any[];
     const slotExists = slots.some(
-      (slot) =>
-        slot.startTime === dto.startTime && slot.endTime === dto.endTime,
+      (slot) => slot.startTime === dto.startTime && slot.endTime === dto.endTime,
     );
 
     if (!slotExists) {
@@ -366,8 +352,7 @@ export class AvailabilityService {
         // Check if slot is booked
         const isBooked = bookings.some(
           (booking) =>
-            booking.counselorPseudonymousId ===
-              avail.professionalUser.pseudonymousId &&
+            booking.counselorPseudonymousId === avail.professionalUser.pseudonymousId &&
             AvailabilityHelpers.isSameDay(booking.date, nextDate) &&
             booking.startTime === slot.startTime &&
             booking.endTime === slot.endTime,
@@ -454,9 +439,7 @@ export class AvailabilityService {
     }
 
     if (availability.professional !== professionalId) {
-      throw new ForbiddenException(
-        'Not authorized to delete this availability',
-      );
+      throw new ForbiddenException('Not authorized to delete this availability');
     }
 
     // Instead of deleting, set to unavailable
@@ -485,9 +468,7 @@ export class AvailabilityService {
         !AvailabilityHelpers.isValidTimeFormat(slot.startTime) ||
         !AvailabilityHelpers.isValidTimeFormat(slot.endTime)
       ) {
-        throw new BadRequestException(
-          `Invalid time format. Use HH:MM (e.g., 09:00)`,
-        );
+        throw new BadRequestException(`Invalid time format. Use HH:MM (e.g., 09:00)`);
       }
 
       // Check if end time is after start time

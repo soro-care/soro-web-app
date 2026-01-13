@@ -10,6 +10,11 @@ import { BookingsModule } from './modules/bookings/bookings.module';
 import { UsersModule } from './modules/users/users.module';
 import { AvailabilityModule } from './modules/availability/availability.module';
 import { NotificationsModule } from './modules/notifications/notifications.module';
+import { PSNModule } from './modules/psn/psn.module';
+import { BlogModule } from './modules/blog/blog.module';
+import { EchoModule } from './modules/echo/echo.module';
+import { SurveyModule } from './modules/survey/survey.module';
+import { AdminModule } from './modules/admin/admin.module';
 
 @Module({
   imports: [
@@ -37,6 +42,11 @@ import { NotificationsModule } from './modules/notifications/notifications.modul
     BookingsModule,
     AvailabilityModule,
     NotificationsModule,
+    PSNModule,
+    BlogModule,
+    EchoModule,
+    SurveyModule,
+    AdminModule,
   ],
 })
 export class AppModule {}

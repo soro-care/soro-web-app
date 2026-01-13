@@ -7,27 +7,20 @@ import {
   OnGatewayConnection,
   OnGatewayDisconnect,
   ConnectedSocket,
-  MessageBody,
 } from '@nestjs/websockets';
 import { Server, Socket } from 'socket.io';
-import { Logger, UseGuards } from '@nestjs/common';
+import { Logger } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { ConfigService } from '@nestjs/config';
 
 @WebSocketGateway({
   cors: {
-    origin: [
-      'http://localhost:5173',
-      'https://soro.care',
-      'https://www.soro.care',
-    ],
+    origin: ['http://localhost:5173', 'https://soro.care', 'https://www.soro.care'],
     credentials: true,
   },
   namespace: '/notifications',
 })
-export class NotificationsGateway
-  implements OnGatewayConnection, OnGatewayDisconnect
-{
+export class NotificationsGateway implements OnGatewayConnection, OnGatewayDisconnect {
   @WebSocketServer()
   server: Server;
 
@@ -47,8 +40,7 @@ export class NotificationsGateway
     try {
       // Extract token from handshake
       const token =
-        client.handshake.auth?.token ||
-        client.handshake.headers?.authorization?.split(' ')[1];
+        client.handshake.auth?.token || client.handshake.headers?.authorization?.split(' ')[1];
 
       if (!token) {
         this.logger.warn(`Client ${client.id} connection rejected: No token`);
@@ -70,7 +62,7 @@ export class NotificationsGateway
       this.userSockets.get(userId).add(client.id);
 
       // Join user-specific room
-      client.join(`user:${userId}`);
+      void client.join(`user:${userId}`);
 
       // Store userId in socket data
       client.data.userId = userId;
@@ -119,7 +111,7 @@ export class NotificationsGateway
   }
 
   @SubscribeMessage('ping')
-  handlePing(@ConnectedSocket() client: Socket) {
+  handlePing() {
     return {
       event: 'pong',
       data: { timestamp: new Date().toISOString() },
@@ -153,9 +145,7 @@ export class NotificationsGateway
   // ============================================
 
   isUserOnline(userId: string): boolean {
-    return (
-      this.userSockets.has(userId) && this.userSockets.get(userId).size > 0
-    );
+    return this.userSockets.has(userId) && this.userSockets.get(userId).size > 0;
   }
 
   // ============================================
