@@ -24,7 +24,7 @@ export class MeetingGeneratorService {
   }> {
     // TODO: Implement actual Zoom API integration
     // For now, return a placeholder structure
-    
+
     const meetingId = this.generateMeetingId();
     const password = this.generatePassword();
 

@@ -179,23 +179,16 @@ export class BookingsService {
     }
 
     // Verify professional owns this booking
-    if (
-      booking.professional.pseudonymousId !== booking.counselorPseudonymousId
-    ) {
+    if (booking.professional.pseudonymousId !== booking.counselorPseudonymousId) {
       throw new ForbiddenException('Not authorized to confirm this booking');
     }
 
     if (booking.status !== 'Pending') {
-      throw new BadRequestException(
-        `Cannot confirm booking with status ${booking.status}`,
-      );
+      throw new BadRequestException(`Cannot confirm booking with status ${booking.status}`);
     }
 
     // Generate meeting link
-    const duration = this.meetingGenerator.calculateDuration(
-      booking.startTime,
-      booking.endTime,
-    );
+    const duration = this.meetingGenerator.calculateDuration(booking.startTime, booking.endTime);
     const meetingRoom = this.meetingGenerator.generateSimpleMeetingRoom();
 
     // Update booking
@@ -247,11 +240,7 @@ export class BookingsService {
   // CANCEL BOOKING
   // ============================================
 
-  async cancelBooking(
-    userId: string,
-    bookingId: string,
-    dto?: UpdateBookingStatusDto,
-  ) {
+  async cancelBooking(userId: string, bookingId: string, dto?: UpdateBookingStatusDto) {
     const booking = await this.prisma.booking.findUnique({
       where: { id: bookingId },
       include: {
@@ -291,9 +280,7 @@ export class BookingsService {
 
     // Validate status
     if (!['Pending', 'Confirmed', 'Rescheduled'].includes(booking.status)) {
-      throw new BadRequestException(
-        `Cannot cancel booking with status ${booking.status}`,
-      );
+      throw new BadRequestException(`Cannot cancel booking with status ${booking.status}`);
     }
 
     // Update booking
@@ -366,9 +353,7 @@ export class BookingsService {
     }
 
     if (booking.status !== 'Confirmed') {
-      throw new BadRequestException(
-        `Cannot complete booking with status ${booking.status}`,
-      );
+      throw new BadRequestException(`Cannot complete booking with status ${booking.status}`);
     }
 
     const updatedBooking = await this.prisma.booking.update({
@@ -386,11 +371,7 @@ export class BookingsService {
   // RESCHEDULE BOOKING
   // ============================================
 
-  async rescheduleBooking(
-    professionalId: string,
-    bookingId: string,
-    dto: RescheduleBookingDto,
-  ) {
+  async rescheduleBooking(professionalId: string, bookingId: string, dto: RescheduleBookingDto) {
     const booking = await this.prisma.booking.findUnique({
       where: { id: bookingId },
       include: {
@@ -422,9 +403,7 @@ export class BookingsService {
     }
 
     if (booking.status !== 'Confirmed') {
-      throw new BadRequestException(
-        `Cannot reschedule booking with status ${booking.status}`,
-      );
+      throw new BadRequestException(`Cannot reschedule booking with status ${booking.status}`);
     }
 
     // Check for conflicts
@@ -478,19 +457,8 @@ export class BookingsService {
   // GET BOOKINGS
   // ============================================
 
-  async getBookings(
-    userId: string,
-    userRole: string,
-    query: GetBookingsQueryDto,
-  ) {
-    const {
-      status,
-      page = 1,
-      limit = 10,
-      dateFrom,
-      dateTo,
-      professionalId,
-    } = query;
+  async getBookings(userId: string, userRole: string, query: GetBookingsQueryDto) {
+    const { status, page = 1, limit = 10, dateFrom, dateTo, professionalId } = query;
 
     const skip = (page - 1) * limit;
 
@@ -622,9 +590,7 @@ export class BookingsService {
     isPeer: boolean,
   ) {
     const clientDisplay = isPeer ? `Client (ID: ${userId})` : userName;
-    const profDisplay = isPeer
-      ? `Peer Counselor (ID: ${counselorId})`
-      : professionalName;
+    const profDisplay = isPeer ? `Peer Counselor (ID: ${counselorId})` : professionalName;
 
     const html = `
       <!DOCTYPE html>
@@ -643,11 +609,7 @@ export class BookingsService {
       </html>
     `;
 
-    await this.emailService.sendEmail(
-      professionalEmail,
-      'New Booking Request - Soro',
-      html,
-    );
+    await this.emailService.sendEmail(professionalEmail, 'New Booking Request - Soro', html);
   }
 
   private async sendBookingConfirmationEmails(booking: any, meetingRoom: any) {
@@ -655,10 +617,7 @@ export class BookingsService {
     // Send to both user and professional
   }
 
-  private async sendBookingCancellationEmails(
-    booking: any,
-    reason?: string,
-  ) {
+  private async sendBookingCancellationEmails(booking: any, reason?: string) {
     // Implementation similar to your old code
   }
 }

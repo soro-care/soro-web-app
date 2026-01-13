@@ -1,11 +1,6 @@
 // src/modules/notifications/notifications.service.ts
 
-import {
-  Injectable,
-  NotFoundException,
-  ForbiddenException,
-  Logger,
-} from '@nestjs/common';
+import { Injectable, NotFoundException, ForbiddenException, Logger } from '@nestjs/common';
 import { PrismaService } from '../../prisma/prisma.service';
 import { NotificationsGateway } from './gateways/notifications.gateway';
 import { CreateNotificationDto, GetNotificationsQueryDto } from './dto';
@@ -66,9 +61,7 @@ export class NotificationsService {
       isRead: notification.isRead,
     });
 
-    this.logger.log(
-      `Notification created for user ${dto.recipient}: ${dto.type}`,
-    );
+    this.logger.log(`Notification created for user ${dto.recipient}: ${dto.type}`);
 
     return notification;
   }
@@ -152,9 +145,7 @@ export class NotificationsService {
     }
 
     if (notification.recipient !== userId) {
-      throw new ForbiddenException(
-        'Not authorized to update this notification',
-      );
+      throw new ForbiddenException('Not authorized to update this notification');
     }
 
     // Update notification
@@ -216,9 +207,7 @@ export class NotificationsService {
     }
 
     if (notification.recipient !== userId) {
-      throw new ForbiddenException(
-        'Not authorized to delete this notification',
-      );
+      throw new ForbiddenException('Not authorized to delete this notification');
     }
 
     await this.prisma.notification.delete({
@@ -332,11 +321,7 @@ export class NotificationsService {
     });
   }
 
-  async notifyBookingCompleted(
-    userId: string,
-    professionalId: string,
-    bookingId: string,
-  ) {
+  async notifyBookingCompleted(userId: string, professionalId: string, bookingId: string) {
     await this.createNotification({
       recipient: userId,
       sender: professionalId,

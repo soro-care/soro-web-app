@@ -1,17 +1,29 @@
 // src/prisma/prisma.service.ts
 import { Injectable, OnModuleInit, OnModuleDestroy, Logger } from '@nestjs/common';
 import { PrismaClient } from '@prisma/client';
-import 'dotenv/config';
+import { Pool } from 'pg';
+import { PrismaPg } from '@prisma/adapter-pg';
 
 @Injectable()
 export class PrismaService extends PrismaClient implements OnModuleInit, OnModuleDestroy {
   private readonly logger = new Logger(PrismaService.name);
+  private pool: Pool;
 
   constructor() {
-    super({
-      log: process.env.NODE_ENV === 'development' ? ['query', 'error', 'warn'] : ['error'],
-      // No need for adapter/accelerateUrl/datasources in v7 for local dev
+    // Call super() FIRST with the adapter configuration
+    const pool = new Pool({
+      connectionString: process.env.DATABASE_URL,
     });
+
+    const adapter = new PrismaPg(pool);
+
+    super({
+      adapter,
+      log: process.env.NODE_ENV === 'development' ? ['query', 'error', 'warn'] : ['error'],
+    });
+
+    // Now assign to this.pool AFTER super()
+    this.pool = pool;
   }
 
   async onModuleInit() {
@@ -19,41 +31,29 @@ export class PrismaService extends PrismaClient implements OnModuleInit, OnModul
       await this.$connect();
       this.logger.log('✅ Database connected successfully');
     } catch (error) {
-      this.logger.error('❌ Database connection failed', error);
+      this.logger.error('Failed to connect to database:', error);
       throw error;
     }
   }
 
   async onModuleDestroy() {
-    await this.$disconnect();
-    this.logger.log('Database disconnected');
+    try {
+      await this.$disconnect();
+      await this.pool.end();
+      this.logger.log('Database disconnected and pool closed');
+    } catch (error) {
+      this.logger.error('Error disconnecting from database:', error);
+    }
   }
 
+  // Optional: Health check method
   async healthCheck(): Promise<boolean> {
     try {
       await this.$queryRaw`SELECT 1`;
       return true;
-    } catch {
+    } catch (error) {
+      this.logger.error('Database health check failed:', error);
       return false;
     }
-  }
-
-  async cleanDatabase() {
-    if (process.env.NODE_ENV === 'production') {
-      throw new Error('Cannot clean database in production');
-    }
-
-    const models = Reflect.ownKeys(this).filter(
-      (key) => key[0] !== '_' && key !== 'constructor'
-    );
-
-    return Promise.all(
-      models.map((modelKey) => {
-        const model = this[modelKey as keyof this];
-        if (model && typeof model === 'object' && 'deleteMany' in model) {
-          return (model as any).deleteMany();
-        }
-      })
-    );
   }
 }
