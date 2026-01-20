@@ -1,0 +1,37 @@
+{
+  "name": "SORO - Mental Health Support",
+  "short_name": "SORO",
+  "description": "Your mental health companion",
+  "theme_color": "#ef4444",
+  "background_color": "#ffffff",
+  "display": "standalone",
+  "orientation": "portrait",
+  "scope": "/",
+  "start_url": "/",
+  "icons": [
+    {
+      "src": "/icons/icon-192x192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/icons/icon-512x512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "Book Session",
+      "url": "/bookings/new",
+      "description": "Book a counseling session"
+    },
+    {
+      "name": "Share Story",
+      "url": "/echo/share",
+      "description": "Share an anonymous story"
+    }
+  ]
+}

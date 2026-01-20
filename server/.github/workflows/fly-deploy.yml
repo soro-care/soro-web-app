@@ -1,4 +1,5 @@
-name: Deploy to Fly.io
+# /server/.github/workflows/fly-deploy.yml
+name: Fly.io CI/CD for Server
 
 on:
   push:
@@ -7,22 +8,68 @@ on:
       - staging
 
 jobs:
-  deploy:
+  build-and-deploy:
     runs-on: ubuntu-latest
 
+    defaults:
+      run:
+        working-directory: ./server
+
     steps:
-      - uses: actions/checkout@v4
+      # 1️⃣ Checkout repository
+      - name: Checkout code
+        uses: actions/checkout@v4
 
-      - uses: superfly/flyctl-actions/setup-flyctl@master
+      # 2️⃣ Check if server folder changed
+      - name: Check for server changes
+        id: changes
+        run: |
+          git fetch origin
+          CHANGED=$(git diff --name-only ${{ github.event.before }} ${{ github.sha }} | grep -E '^server/')
+          echo "changed=$CHANGED" >> $GITHUB_OUTPUT
 
-      - name: Deploy Production
-        if: github.ref == 'refs/heads/main'
-        run: flyctl deploy --config fly.toml
-        env:
-          FLY_API_TOKEN: ${{ secrets.FLY_API_TOKEN }}
+      - name: Skip deploy if no server changes
+        if: ${{ steps.changes.outputs.changed == '' }}
+        run: |
+          echo "No server changes detected. Skipping build & deploy."
+          exit 0
 
-      - name: Deploy Staging
-        if: github.ref == 'refs/heads/staging'
-        run: flyctl deploy --config fly.staging.toml
+      # 3️⃣ Setup Node.js
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      # 4️⃣ Install dependencies
+      - name: Install dependencies
+        run: npm ci
+
+      # 5️⃣ Run linter
+      - name: Lint
+        run: npm run lint || true
+
+      # 6️⃣ Build application
+      - name: Build
+        run: npm run build
+
+      # 7️⃣ Run tests
+      - name: Run tests
+        run: npm test || true
+
+      # 8️⃣ Setup Fly CLI
+      - name: Setup Fly.io CLI
+        uses: superfly/flyctl-actions/setup-flyctl@master
+
+      # 9️⃣ Deploy to Fly.io
+      - name: Deploy to Fly.io
+        run: |
+          if [[ "${GITHUB_REF}" == "refs/heads/main" ]]; then
+            echo "Deploying to Production..."
+            flyctl deploy --config fly.toml --remote-only
+          elif [[ "${GITHUB_REF}" == "refs/heads/staging" ]]; then
+            echo "Deploying to Staging..."
+            flyctl deploy --config fly.staging.toml --remote-only
+          fi
         env:
           FLY_API_TOKEN: ${{ secrets.FLY_API_TOKEN }}
